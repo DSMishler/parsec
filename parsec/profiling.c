@@ -102,7 +102,7 @@ static int file_backend_extendable;
 
 static parsec_profiling_binary_file_header_t *profile_head = NULL;
 static char *bpf_filename = NULL;
-PARSEC_TLS_DECLARE(tls_profiling);
+static PARSEC_TLS_DECLARE(tls_profiling);
 
 static int parsec_profiling_show_profiling_performance = 0;
 static parsec_profiling_perf_t parsec_profiling_global_perf[PERF_MAX];
@@ -983,6 +983,10 @@ parsec_profiling_trace_flags(parsec_profiling_stream_t* context, int key,
     size_t this_event_length;
     parsec_time_t now;
 
+    if(flags & PARSEC_PROFILING_EVENT_TIME_AT_START) {
+        now = take_time();
+    }
+
     if( (-1 == file_backend_fd) || (!start_called) ) {
         return PARSEC_ERR_NOT_SUPPORTED;
     }
@@ -1014,7 +1018,10 @@ parsec_profiling_trace_flags(parsec_profiling_stream_t* context, int key,
         this_event->event.flags = PARSEC_PROFILING_EVENT_HAS_INFO;
     }
     this_event->event.flags |= flags;
-    now = take_time();
+    if(flags ^ PARSEC_PROFILING_EVENT_TIME_AT_START) {
+        /* default behavior is to take time at end */
+        now = take_time();
+    }
     this_event->event.timestamp = diff_time(parsec_start_time, now);
 
     return 0;
