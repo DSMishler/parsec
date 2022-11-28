@@ -23,6 +23,7 @@ set(BASE_SOURCES
   class/parsec_future.c
   class/parsec_datacopy_future.c
   utils/argv.c
+  utils/process_name.c
   utils/cmd_line.c
   utils/colors.c
   utils/parsec_environ.c
@@ -191,7 +192,7 @@ if( BUILD_PARSEC )
     ${PARSEC_ATOMIC_SUPPORT_LIBS}
     Threads::Threads
     $<$<BOOL:${PARSEC_HAVE_WS2_32}>:ws2_32>)
-  set_target_properties(parsec-base-obj PROPERTIES POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})
+  set_target_properties(parsec-base-obj PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
   # Include the parsec-base objects into the parsec-base library (for tools)
   if(NOT TARGET parsec-base)
@@ -231,16 +232,17 @@ if( BUILD_PARSEC )
     $<$<BOOL:${PARSEC_SHM_OPEN_IN_LIBRT}>:rt>
     PUBLIC
     $<$<BOOL:${PARSEC_HAVE_DLFCN_H}>:${CMAKE_DL_LIBS}> # Add support for dlopen if necessary
-    $<$<BOOL:${HWLOC_FOUND}>:HWLOC::HWLOC>
+    $<$<BOOL:${HWLOC_FOUND}>:hwloc>
     $<$<BOOL:${PARSEC_HAVE_OTF2}>:OTF2::OTF2>
     $<$<BOOL:${MPI_C_FOUND}>:MPI::MPI_C>
     $<$<BOOL:${PARSEC_HAVE_CUDA}>:CUDA::cudart>
+    $<$<BOOL:${PARSEC_HAVE_HIP}>:hip::host>
     ${EXTRA_LIBS}
     INTERFACE
     ${PARSEC_ATOMIC_SUPPORT_LIBS}
     )
 
-  set_target_properties(parsec PROPERTIES POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})
+  set_target_properties(parsec PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
   # For now make sure that the installed shared libraries have the right
   # version (same version as the major of the build version). Thus, every
   # change in the high-level API (and ABI) should be reflected on the
@@ -358,6 +360,7 @@ if( PARSEC_WITH_DEVEL_HEADERS )
           ${CMAKE_CURRENT_SOURCE_DIR}/utils/parsec_environ.h
           ${CMAKE_CURRENT_SOURCE_DIR}/utils/mca_param_cmd_line.h
           ${CMAKE_CURRENT_SOURCE_DIR}/utils/os_path.h
+          ${CMAKE_CURRENT_SOURCE_DIR}/utils/process_name.h
           ${CMAKE_CURRENT_SOURCE_DIR}/utils/output.h
           ${CMAKE_CURRENT_SOURCE_DIR}/utils/show_help.h
           ${CMAKE_CURRENT_SOURCE_DIR}/utils/zone_malloc.h

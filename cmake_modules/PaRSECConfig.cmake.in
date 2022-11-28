@@ -67,6 +67,12 @@ if(@PARSEC_HAVE_CUDA@)
   SET(PARSEC_HAVE_CUDA TRUE)
 endif(@PARSEC_HAVE_CUDA@)
 
+if(@PARSEC_HAVE_HIP@)
+  enable_language(CXX)
+  find_package(HIP REQUIRED)
+  SET(PARSEC_HAVE_HIP TRUE)
+endif(@PARSEC_HAVE_HIP@)
+
 if(@PARSEC_PROF_TRACE@)
   # Nothing exportable here, if this test succeed then PaRSEC supports tracing
 endif(@PARSEC_PROF_TRACE@)
@@ -78,6 +84,6 @@ endif(NOT TARGET PaRSEC::parsec)
 
 # Populate the variables
 
-set(PARSEC_PTGFLAGS "$ENV{PTGFLAGS}" CACHE STRING "Flags to pass to the parsec-ptgpp executable")
+set(PARSEC_PTGPP_FLAGS "$ENV{PTGPPFLAGS}" CACHE STRING "Flags to pass to the parsec-ptgpp executable")
 set(PARSEC_PTGPP_EXECUTABLE ${PARSEC_BINARY_DIRS}/parsec-ptgpp CACHE STRING "Point to the parsec-ptgpp executable")
 set(PARSEC_LIBRARIES PaRSEC::parsec CACHE STRING "List of libraries suitable for use in target_link_libraries") # for compatibility with older (non-target based) clients
