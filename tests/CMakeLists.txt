@@ -73,6 +73,7 @@ set(TESTS
    testing_zgeqrf_dtd_untied.c
    testing_zgetrf_incpiv_dtd.c
    testing_zgemm_dtd.c
+   testing_zgemm_dtd_recursive.c
 )
 if( DPLASMA_DEBUG_QR_PIVGEN )
   list(APPEND TESTS testing_zpivgen.c)
