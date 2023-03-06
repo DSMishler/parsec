@@ -8,6 +8,7 @@ extern "C" %{
  * $COPYRIGHT
  *
  */
+ /* Daniel Mishler attempt to make no migrations occur in a ptg gemm */
 #include "dplasmajdf.h"
 #include "dplasmaaux.h"
 #include "parsec/data_dist/matrix/matrix.h"
@@ -48,7 +49,8 @@ extern "C" %{
  *
  */
 
-#include "zgemm_NN_summa.h"
+/* As of 2023-03-06, only NN is implemented */
+#include "zgemm_NT_mtest.h"
 
 %}
 
@@ -59,7 +61,7 @@ extern "C" %{
 /* Keep this first, as in all jdf in this directory, to
  * enable switching between GEMM implementations.
  */
-gemm_type [ type = int hidden=on default="DPLASMA_ZGEMM_NN_SUMMA" ]
+gemm_type [ type = int hidden=on default="DPLASMA_ZGEMM_NT_MTEST" ]
 
 transA [type = int]
 transB [type = int]
