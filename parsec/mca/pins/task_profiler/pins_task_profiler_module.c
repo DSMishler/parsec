@@ -119,6 +119,14 @@ static void pins_init_task_profiler(parsec_context_t *master_context)
                                                 &trace_keys[PREPARE_INPUT_END]);
     }
 
+    if (PARSEC_PINS_FLAG_ENABLED(COMPLETE_EXEC_BEGIN)) {
+        parsec_profiling_add_dictionary_keyword("PARSEC RUNTIME::EXEC_BEGIN", "fill:#EFEFEF",
+                                                0,
+                                                "",
+                                                &trace_keys[EXEC_BEGIN],
+                                                &trace_keys[EXEC_END]);
+    }
+
     if (PARSEC_PINS_FLAG_ENABLED(RELEASE_DEPS_BEGIN)) {
         parsec_profiling_add_dictionary_keyword("PARSEC RUNTIME::RELEASE_DEPS", "fill:#FF0000",
                                                 sizeof(int32_t),
@@ -153,8 +161,8 @@ static void pins_init_task_profiler(parsec_context_t *master_context)
 
     if (PARSEC_PINS_FLAG_ENABLED(SCHEDULE_BEGIN)) {
         parsec_profiling_add_dictionary_keyword("PARSEC RUNTIME::SCHEDULE_TASKS", "fill:#EFEFEF",
-                                                0,
-                                                "",
+                                                sizeof(int32_t),
+                                                "qlength{uint32_t}",
                                                 &trace_keys[SCHEDULE_BEGIN],
                                                 &trace_keys[SCHEDULE_END]);
     }
@@ -443,11 +451,30 @@ task_profiler_schedule_begin(struct parsec_execution_stream_s*   es,
                             struct parsec_task_s*               task,
                             struct parsec_pins_next_callback_s* cb_data)
 {
+    int qlength;
+    volatile parsec_list_item_t *p;
+    qlength = 0;
+    for(p = &(task->super); 1; p=(volatile parsec_list_item_t *)p->list_next)
+    {
+        if(p == &(task->super))
+        {
+            if(qlength == 0)
+            {
+                ; /* do nothing */
+            }
+            else
+            {
+                break;
+            }
+        }
+        qlength+=1;
+    }
+
     PARSEC_PROFILING_TRACE(es->es_profile,
                            trace_keys[SCHEDULE_BEGIN],
                            0,
                            -1,
-                           NULL);
+                           (void*)(&(qlength)));
 
     (void)cb_data;(void)task;
 }
@@ -497,12 +524,18 @@ task_profiler_exec_count_begin(struct parsec_execution_stream_s*   es,
                                struct parsec_task_s*               task,
                                struct parsec_pins_next_callback_s* cb_data)
 {
-    if (NULL != task->taskpool->profiling_array &&
-        task->task_class->task_class_id < task->taskpool->nb_task_classes)
-        PARSEC_TASK_PROF_TRACE_FLAGS(es->es_profile,
-                               task->taskpool->profiling_array[START_KEY(task->task_class->task_class_id)],
-                               task,
-                               PARSEC_PROFILING_EVENT_TIME_AT_END, 0);
+    PARSEC_PROFILING_TRACE(es->es_profile,
+                           trace_keys[EXEC_BEGIN],
+                           0,
+                           -1,
+                           NULL);
+    (void)task;
+    // if (NULL != task->taskpool->profiling_array &&
+        // task->task_class->task_class_id < task->taskpool->nb_task_classes)
+        // PARSEC_TASK_PROF_TRACE_FLAGS(es->es_profile,
+                               // task->taskpool->profiling_array[START_KEY(task->task_class->task_class_id)],
+                               // task,
+                               // PARSEC_PROFILING_EVENT_TIME_AT_END, 0);
     (void)cb_data;
 }
 
@@ -511,12 +544,18 @@ task_profiler_exec_count_end(struct parsec_execution_stream_s*   es,
                              struct parsec_task_s*               task,
                              struct parsec_pins_next_callback_s* cb_data)
 {
-    if (NULL != task->taskpool->profiling_array &&
-        task->task_class->task_class_id < task->taskpool->nb_task_classes)
-        PARSEC_TASK_PROF_TRACE_FLAGS(es->es_profile,
-                               task->taskpool->profiling_array[END_KEY(task->task_class->task_class_id)],
-                               task,
-                               PARSEC_PROFILING_EVENT_TIME_AT_START, 1);
+    PARSEC_PROFILING_TRACE(es->es_profile,
+                           trace_keys[EXEC_END],
+                           0,
+                           -1,
+                           NULL);
+    (void)task;
+    // if (NULL != task->taskpool->profiling_array &&
+        // task->task_class->task_class_id < task->taskpool->nb_task_classes)
+        // PARSEC_TASK_PROF_TRACE_FLAGS(es->es_profile,
+                               // task->taskpool->profiling_array[END_KEY(task->task_class->task_class_id)],
+                               // task,
+                               // PARSEC_PROFILING_EVENT_TIME_AT_START, 1);
     (void)cb_data;
 }
 
