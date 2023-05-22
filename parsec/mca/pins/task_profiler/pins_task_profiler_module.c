@@ -438,42 +438,42 @@ task_profiler_select_end(struct parsec_execution_stream_s*   es,
     (void)cb_data;(void)task;
 }
 
+
 static void
 task_profiler_schedule_begin(struct parsec_execution_stream_s*   es,
                             struct parsec_task_s*               task,
                             struct parsec_pins_next_callback_s* cb_data)
 {
+    static int zero_bin = 0;
+    static int nonzero_bin = 0;
     int qlength;
     volatile parsec_list_item_t *p;
-    qlength = 0;
-    for(p = &(task->super); 1; p=(volatile parsec_list_item_t *)p->list_next)
+    qlength = 1;
+    for(p = (&(task->super))->list_next; 1; p=p->list_next)
     {
         if(p == &(task->super))
         {
-            if(qlength == 0)
-            {
-                ; /* do nothing */
-            }
-            else
-            {
-                break;
-            }
+            break;
         }
         qlength+=1;
     }
 
+    // printf("adding queue of length %d\n", qlength);
+    // printf("task is of class %d\n", task->task_class->task_class_id);
+    if (task->task_class->task_class_id == 0)
+    {
+        zero_bin++;
+    }
+    else
+    {
+        nonzero_bin++;
+    }
+    printf("of id 0: %d\nof other id: %d\n", zero_bin, nonzero_bin);
     PARSEC_PROFILING_TRACE(es->es_profile,
                            trace_keys[SCHEDULE_BEGIN],
                            0,
                            -1,
                            (void*)(&(qlength)));
-
-    (void)cb_data;(void)task;
-    PARSEC_PROFILING_TRACE(es->es_profile,
-                           trace_keys[SCHEDULE_BEGIN],
-                           0,
-                           -1,
-                           NULL);
 
     (void)cb_data;(void)task;
 }
