@@ -153,8 +153,8 @@ static void pins_init_task_profiler(parsec_context_t *master_context)
 
     if (PARSEC_PINS_FLAG_ENABLED(SCHEDULE_BEGIN)) {
         parsec_profiling_add_dictionary_keyword("PARSEC RUNTIME::SCHEDULE_TASKS", "fill:#EFEFEF",
-                                                0,
-                                                "",
+                                                sizeof(int32_t),
+                                                "qlength{int32_t}",
                                                 &trace_keys[SCHEDULE_BEGIN],
                                                 &trace_keys[SCHEDULE_END]);
     }
@@ -443,6 +443,32 @@ task_profiler_schedule_begin(struct parsec_execution_stream_s*   es,
                             struct parsec_task_s*               task,
                             struct parsec_pins_next_callback_s* cb_data)
 {
+    int qlength;
+    volatile parsec_list_item_t *p;
+    qlength = 0;
+    for(p = &(task->super); 1; p=(volatile parsec_list_item_t *)p->list_next)
+    {
+        if(p == &(task->super))
+        {
+            if(qlength == 0)
+            {
+                ; /* do nothing */
+            }
+            else
+            {
+                break;
+            }
+        }
+        qlength+=1;
+    }
+
+    PARSEC_PROFILING_TRACE(es->es_profile,
+                           trace_keys[SCHEDULE_BEGIN],
+                           0,
+                           -1,
+                           (void*)(&(qlength)));
+
+    (void)cb_data;(void)task;
     PARSEC_PROFILING_TRACE(es->es_profile,
                            trace_keys[SCHEDULE_BEGIN],
                            0,
